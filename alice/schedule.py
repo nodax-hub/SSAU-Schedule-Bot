@@ -1,3 +1,4 @@
+import datetime
 
 # Кол-во дней в учебной недели
 AMOUNT_DAYS = 6
