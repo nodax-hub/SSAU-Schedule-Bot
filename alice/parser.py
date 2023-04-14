@@ -37,6 +37,8 @@ def reshape(roll, length):
 def parse_week(group_id: int, selected_week: int) -> Week:
     """Вернёт расписание для указанной группы на указанную неделю"""
     response = requests.get(f"{URL}?groupId={group_id}&selectedWeek={selected_week}", headers=HEADERS)
+    if response.status_code != 200:
+        raise requests.exceptions.HTTPError(f'Server returned {response.status_code} status code.')
     soup = BeautifulSoup(response.text, 'lxml')
 
     days_dates: list[datetime.date] = []
