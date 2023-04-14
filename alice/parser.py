@@ -3,15 +3,15 @@
 Также есть функция для парсинга начала семетра определённой группы
 """
 
-import re
-import math
-import datetime
 import logging
-from schedule import *
+import math
+import re
 from functools import lru_cache
 
 import requests
 from bs4 import BeautifulSoup
+
+from schedule import *
 
 URL = 'https://ssau.ru/rasp'
 
@@ -22,12 +22,13 @@ HEADERS = {
                   'Yowser/2.5 Safari/537.36'
 }
 
+
 def reshape(roll, length):
     """
     Создаёт из одномерного массива двумерный, объединяя в строку по {param} элементов.
     :param roll: исходный список.
-    :param length: по сколько элементов объединять.
-    :return: новый список с объединёнными массивами
+    :param length: По сколько элементов объединять.
+    :return: Новый список с объединёнными массивами
     """
     return [roll[(cur_pos := i * length):cur_pos + length] for i in range(math.ceil(len(roll) / length))]
 
