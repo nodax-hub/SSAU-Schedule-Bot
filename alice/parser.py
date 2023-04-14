@@ -12,7 +12,6 @@ from functools import lru_cache
 
 import requests
 from bs4 import BeautifulSoup
-from prettytable import PrettyTable
 
 URL = 'https://ssau.ru/rasp'
 
