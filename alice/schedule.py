@@ -8,12 +8,8 @@ AMOUNT_DAYS = 6
 
 class Pair:
     """Класс одной конкретной пары"""
-    discipline_name: str
-    teacher: str
-    place: str
-    pair_type: str
 
-    def __init__(self, discipline_name, teacher=None, place=None, pair_type=None):
+    def __init__(self, discipline_name: str, teacher: str = None, place: str = None, pair_type: str = None):
         self.discipline_name = discipline_name
         self.teacher = teacher
         self.place = place
@@ -28,7 +24,7 @@ class PairsSet:
         self.pairs_set = pairs_set or []
 
     def __str__(self):
-        return f"{self.number} {' | '.join(pair.discipline_name for pair in self.pairs_set)}"
+        return f"№{self.number} - {' | '.join(pair.discipline_name for pair in self.pairs_set)}"
 
     def __len__(self):
         return len(self.pairs_set)
