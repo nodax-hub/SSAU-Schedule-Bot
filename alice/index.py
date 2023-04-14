@@ -1,3 +1,5 @@
+from requests import HTTPError
+
 from parser import today, tomorrow
 from schedule import Day
 
@@ -5,10 +7,12 @@ from schedule import Day
 def say_day(day: Day) -> str:
     response = f"Расписание на {day.date.strftime('%d.%m.%Y')}.\nИ так слушайте:\n"
     if len(day.pairs):
+        if day.pairs[0].number != 1:
+            response += f"Вам к паре номер {day.pairs[0].number}\n"
         for pair in day.pairs:
             response += f"{pair}.\n"
     else:
-        response += "В этот день нет пар."
+        response += "По моим данным в этот день нет пар."
     return response
 
 
@@ -37,10 +41,18 @@ def handler(event: dict, context) -> dict:
         text = 'Напиши мне id своей группы.'
 
     elif 'сегодня' in phrase:
-        text = say_day(today(event['state']['user']['group_id']))
+        try:
+            text = say_day(today(event['state']['user']['group_id']))
+        except HTTPError as e:
+            text = 'Извините сайт не отвечает, проверьте указанный вами id группы или попробуйте позже.'
+            text += ' ' + str(e)
 
     elif 'завтра' in phrase:
-        text = say_day(tomorrow(event['state']['user']['group_id']))
+        try:
+            text = say_day(tomorrow(event['state']['user']['group_id']))
+        except HTTPError as e:
+            text = 'Извините сайт не отвечает, проверьте указанный вами id группы или попробуйте позже.'
+            text += ' ' + str(e)
 
     else:
         text = 'Извините, я не знаю что ответить.'
