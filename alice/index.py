@@ -11,13 +11,6 @@ def say_day(day: Day) -> str:
         response += "В этот день нет пар."
     return response
 
-# Некоторые ответы
-say_hello = 'Привет. Для того чтобы узнать своё расписание просто спроси меня: "расписание на сегодня". Если возникнут вопросы скажите помощь.'
-say_help = 'Для того чтобы я могла сказать ваше расписание, мне необходимо получить от вас id группы. Затем вы можете попросить меня сказать рассписание на сегодня или на завтра.'
-say_sorry = 'Извините, я не знаю что ответить.'
-say_get_group = 'Напиши мне id своей группы.'
-say_update_group = 'Вы успешно сменили id своей группы.'
-say_glad_to_help = 'Всегда рада помочь.'
 
 def handler(event: dict, context) -> dict:
     user_state_update = {}
@@ -25,21 +18,23 @@ def handler(event: dict, context) -> dict:
     phrase = event['request']['original_utterance'].lower()
 
     if event['session']['new'] and len(phrase) == 0:
-        text = say_hello
+        text = 'Привет. Для того чтобы узнать своё расписание просто спроси меня: "расписание на сегодня".'
+               'Если возникнут вопросы скажите помощь.'
 
     elif 'помощь' in phrase:
-        text = say_help
+        text = 'Для того чтобы я могла сказать ваше расписание, мне необходимо получить от вас id группы.'
+               'Затем вы можете попросить меня сказать рассписание на сегодня или на завтра.'
 
     elif 'спасибо' in phrase:
-        text = say_glad_to_help
+        text = 'Всегда рада помочь.'
         end_session = 'true'
     
     elif phrase.isdigit():
         user_state_update['group_id'] = int(phrase)
-        text = say_update_group
+        text = 'Вы успешно сменили id своей группы.'
 
     elif 'group_id' not in event['state']['user']:
-        text = say_get_group
+        text = 'Напиши мне id своей группы.'
 
     elif 'сегодня' in phrase:
         text = say_day(today(event['state']['user']['group_id']))
@@ -48,7 +43,7 @@ def handler(event: dict, context) -> dict:
         text = say_day(tomorrow(event['state']['user']['group_id']))
 
     else:
-        text = say_sorry
+        text = 'Извините, я не знаю что ответить.'
 
     return {
         'version': event['version'],
