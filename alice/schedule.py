@@ -1,5 +1,7 @@
 import datetime
 
+from prettytable import PrettyTable
+
 # Кол-во дней в учебной недели
 AMOUNT_DAYS = 6
 
