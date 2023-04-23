@@ -1,6 +1,8 @@
-from requests import HTTPError
+import datetime
 
-from parser import today, tomorrow
+from requests import HTTPError, ConnectionError
+
+from parser import get_day
 from schedule import Day
 
 
@@ -16,7 +18,33 @@ def say_day(day: Day) -> str:
     return response
 
 
+def schedule_on_day(phrase: str, group_id: int) -> str:
+    week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+    cur_date = datetime.date.today()
+
+    if 'сегодня' in phrase:
+        pass
+    elif 'завтра' in phrase:
+        cur_date += datetime.timedelta(days=1)
+    else:
+        for i, day in enumerate(week_days):
+            if day in phrase:
+                cur_date += datetime.timedelta(days=i - cur_date.weekday())
+                break
+        else:
+            return 'Извините, я не знаю что ответить.'
+
+    try:
+        return say_day(get_day(group_id, cur_date))
+    except HTTPError as e:
+        return f'Извините сайт не отвечает, проверьте указанный вами id группы, попробуйте позже или, ' \
+               f'если проблема не исчезнет, свяжитесь с разработчиком. \n{e}'
+    except ConnectionError as e:
+        return f'Не удаётся установить соединение с сайтом. Попробуйте позже или свяжитесь с разработчиком. \n{e}'
+
+
 def handler(event: dict, context) -> dict:
+    # TODO: Добавить логику сохранения id группы в хранилище приложения
     user_state_update = {}
     end_session = 'false'
     phrase = event['request']['original_utterance'].lower()
@@ -40,22 +68,9 @@ def handler(event: dict, context) -> dict:
     elif 'group_id' not in event['state']['user']:
         text = 'Напиши мне id своей группы.'
 
-    elif 'сегодня' in phrase:
-        try:
-            text = say_day(today(event['state']['user']['group_id']))
-        except HTTPError as e:
-            text = 'Извините сайт не отвечает, проверьте указанный вами id группы или попробуйте позже.'
-            text += ' ' + str(e)
-
-    elif 'завтра' in phrase:
-        try:
-            text = say_day(tomorrow(event['state']['user']['group_id']))
-        except HTTPError as e:
-            text = 'Извините сайт не отвечает, проверьте указанный вами id группы или попробуйте позже.'
-            text += ' ' + str(e)
-
     else:
-        text = 'Извините, я не знаю что ответить.'
+        group_id = event['state']['user']['group_id']
+        text = schedule_on_day(phrase, group_id)
 
     return {
         'version': event['version'],
