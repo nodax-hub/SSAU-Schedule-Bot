@@ -1,7 +1,7 @@
 import datetime
 
 from requests import HTTPError, ConnectionError
-
+from fuzzywuzzy import process
 from parser import get_day
 from schedule import Day
 
@@ -27,10 +27,9 @@ def schedule_on_day(phrase: str, group_id: int) -> str:
     elif 'завтра' in phrase:
         cur_date += datetime.timedelta(days=1)
     else:
-        for i, day in enumerate(week_days):
-            if day in phrase:
-                cur_date += datetime.timedelta(days=i - cur_date.weekday())
-                break
+        day, percent = process.extractOne(phrase, week_days)
+        if percent >= 70:
+            cur_date += datetime.timedelta(days=week_days.index(day) - cur_date.weekday())
         else:
             return 'Извините, я не знаю что ответить.'
 
