@@ -20,21 +20,21 @@ def say_day(day: Day) -> str:
 
 def schedule_on_day(phrase: str, group_id: int) -> str:
     week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-    cur_date = datetime.date.today()
+    date_of_interest = datetime.date.today()
 
     if 'сегодня' in phrase:
         pass
     elif 'завтра' in phrase:
-        cur_date += datetime.timedelta(days=1)
+        date_of_interest += datetime.timedelta(days=1)
     else:
         day, percent = process.extractOne(phrase, week_days)
         if percent >= 70:
-            cur_date += datetime.timedelta(days=week_days.index(day) - cur_date.weekday())
+            date_of_interest += datetime.timedelta(days=week_days.index(day) - date_of_interest.weekday())
         else:
             return 'Извините, я не знаю что ответить.'
 
     try:
-        return say_day(get_day(group_id, cur_date))
+        return say_day(get_day(group_id, date_of_interest))
     except HTTPError as e:
         return f'Извините сайт не отвечает, проверьте указанный вами id группы, попробуйте позже или, ' \
                f'если проблема не исчезнет, свяжитесь с разработчиком. \n{e}'
