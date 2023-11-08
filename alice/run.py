@@ -63,15 +63,15 @@ class Colors:
 def main():
     while True:
         response = index.handler(request, None)
-
-        print(f'{Colors.GREEN}{Colors.BOLD}Response:{Colors.END}')
-        pprint(response)
-        print()
-
+        
         print(f'{Colors.GREEN}{Colors.BOLD}Request:{Colors.END}')
         pprint(request)
         print()
-
+        
+        print(f'{Colors.GREEN}{Colors.BOLD}Response:{Colors.END}')
+        pprint(response)
+        print()
+        
         if response['user_state_update']:
             request['state']['user'] |= response['user_state_update']
         request["request"]["original_utterance"] = input(">")
