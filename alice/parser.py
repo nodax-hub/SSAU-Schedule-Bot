@@ -68,8 +68,8 @@ class SSAUParser:
         pairs_set = []
         for pair in soup_item.find_all("div", class_="schedule__lesson"):
             for pair_type in Pair.PAIR_TYPES:
-                class_pair_type = f"body-text schedule__discipline lesson-color lesson-color-type-{pair_type}"
-                
+                # class_pair_type = f"body-text schedule__discipline lesson-color lesson-color-type-{pair_type}"
+                class_pair_type = f"schedule__lesson-type-chip lesson-type-{pair_type}__bg"
                 if discipline_name := pair.find("div",
                                                 class_=class_pair_type):
                     discipline_name = discipline_name.text.strip()
@@ -132,14 +132,31 @@ class SSAUParser:
         return start_date
     
     @classmethod
+    def _get_date_first_monday(cls, date):
+        # вернёт дату первого понедельника в данном месяце
+
+        # Начинаем с первого числа месяца
+        date = datetime.date(date.year, date.month, 1)
+
+        # Проверяем, является ли первое число месяца понедельником
+        if date.weekday() == 0:
+            return date
+
+        # Если нет, находим дату первого понедельника
+        days_to_monday = (7 - date.weekday()) % 7
+        first_monday_date = date + datetime.timedelta(days=days_to_monday)
+
+        return first_monday_date
+
+    @classmethod
     def get_number_week(cls, date: datetime.date, start_semester: datetime.date = None) -> int:
         """Функция для определения номера текущей недели"""
         if start_semester is None:
             start_semester = cls._get_date_start_semester(date)
-        
-        date_first_learn_week = start_semester - datetime.timedelta(days=start_semester.weekday())
+
+        date_first_learn_week = cls._get_date_first_monday(start_semester)
         return ((date - date_first_learn_week) // 7).days + 1
-    
+
     @classmethod
     @lru_cache
     def get_week(cls, group_id: int, number_week: int) -> Week:
