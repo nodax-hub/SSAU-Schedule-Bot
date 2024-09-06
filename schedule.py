@@ -45,7 +45,7 @@ class PairsSet:
     
     def __str__(self):
         if len(self):
-            return f"{' | '.join(pair.discipline_name for pair in self.pairs_set)}"
+            return f"№{self.number} - {' | '.join(pair.discipline_name for pair in self.pairs_set)}"
         return ""
     
     def __len__(self):
