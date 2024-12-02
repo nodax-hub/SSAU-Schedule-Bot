@@ -12,6 +12,8 @@ class Pair:
     teacher: str = None
     place: str = None
     pair_type: int = None
+    groups: set[str] = field(default_factory=list)
+    subgroups: set[int] = field(default_factory=set)
     
     PAIR_TYPES = {
         1: 'Лекция',
