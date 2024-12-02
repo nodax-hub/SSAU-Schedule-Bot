@@ -82,6 +82,21 @@ class SSAUParser:
         return getattr(pair.find("div", class_="schedule__teacher"), 'text', '').strip()
 
     @classmethod
+    def _get_groups_and_subgroups(cls, pair) -> tuple[set[str], set[int]]:
+        groups, subgroups = set(), set()
+        for group in pair.find("div", class_="schedule__groups").find_all(class_='caption-text'):
+            if not (g_text := getattr(group, 'text', '').strip().lower()):
+                continue
+
+            if 'подгруппы' in g_text:
+                subgroup = int(re.search(r'\d+', g_text).group(0))
+                subgroups.add(subgroup)
+            else:
+                groups.add(g_text)
+
+        return groups, subgroups
+
+    @classmethod
     def _parse_pairs_set(cls, soup_item: BeautifulSoup, time: tuple[datetime.time, datetime.time]) -> PairsSet:
         pairs_set = []
         for pair in soup_item.find_all("div", class_="schedule__lesson"):
@@ -90,8 +105,9 @@ class SSAUParser:
             discipline_name = cls._get_discipline_name(pair)
             place = cls._get_place(pair)
             teacher = cls._get_teacher(pair)
+            groups, subgroups = cls._get_groups_and_subgroups(pair)
 
-            pairs_set.append(Pair(discipline_name, teacher, place, pair_type))
+            pairs_set.append(Pair(discipline_name, teacher, place, pair_type, groups, subgroups))
 
         return PairsSet(PairsSet.define_pair_number_by_time(time), pairs_set)
 
@@ -160,8 +176,11 @@ class SSAUParser:
         return first_monday_date
 
     @classmethod
-    def get_number_week(cls, date: datetime.date, start_semester: datetime.date = None) -> int:
+    def get_number_week(cls, date: datetime.date = None, start_semester: datetime.date = None) -> int:
         """Функция для определения номера текущей недели"""
+        if date is None:
+            date = datetime.date.today()
+
         if start_semester is None:
             start_semester = cls._get_date_start_semester(date)
 
@@ -174,6 +193,11 @@ class SSAUParser:
         """Вернёт расписание для указанной группы на указанную неделю"""
         soup = cls._get_soup(group_id, number_week)
         return cls._create_week(soup, number_week)
+
+    @classmethod
+    def get_current_week(cls, group_id: int) -> Week:
+        """Вернёт текущую неделю для указанной группы"""
+        return cls.get_week(group_id, cls.get_number_week(datetime.date.today()))
 
     @classmethod
     def get_day(cls, group_id: int, date: datetime.date) -> Day:
