@@ -23,24 +23,8 @@ def say_day(day: Day) -> str:
     return response
 
 
-def define_date_by_phrase(phrase):
-    week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-    date_of_interest = datetime.date.today()
-    if 'сегодня' in phrase:
-        pass
-    elif 'завтра' in phrase:
-        date_of_interest += datetime.timedelta(days=1)
-    else:
-        day, percent = process.extractOne(phrase, week_days)
-        if percent >= 70:
-            date_of_interest += datetime.timedelta(days=week_days.index(day) - date_of_interest.weekday())
-        else:
-            raise ValueError
-    return date_of_interest
-
-
-def parse_date_from_phrase(phrase: str) -> datetime:
-    today = datetime.datetime.today()
+def parse_date_from_phrase(phrase: str) -> datetime.date:
+    today = datetime.date.today()
 
     # Карта простых фраз на дни
     days_map = {
@@ -67,17 +51,26 @@ def parse_date_from_phrase(phrase: str) -> datetime:
     }
 
     # Проверяем, говорится ли о следующей неделе
-    if "следующий" in phrase or "следующая" in phrase:
-        next_week = True
-    else:
-        next_week = False
+    next_week = ("следующий" in phrase or "следующая" in phrase)
 
-    for day_name, weekday in weekdays_map.items():
-        if day_name in phrase:
-            current_weekday = today.weekday()
-            delta_days = (weekday - current_weekday) % 7
-            if next_week or delta_days == 0:
-                delta_days += 7
+    # Проверяем, упоминается ли прошедшая неделя ("что было")
+    past_week = ("что было" in phrase or "было" in phrase)
+
+    day, percent = process.extractOne(phrase, weekdays_map.keys())
+    if percent >= 70:
+        weekday = weekdays_map[day]
+        current_weekday = today.weekday()
+        if past_week:
+            # Для прошедшего дня: ищем ближайший прошедший день
+            delta_days = (current_weekday - weekday) % 7
+            if delta_days == 0:
+                delta_days = 7  # Если это сегодня, возвращаем предыдущую неделю
+            return today - datetime.timedelta(days=delta_days)
+
+        # Для будущего дня: ищем ближайший будущий день
+        delta_days = (weekday - current_weekday) % 7
+        if next_week or delta_days == 0:
+            delta_days += 7
             return today + datetime.timedelta(days=delta_days)
 
     # Обрабатываем числовые даты типа "на 20 число" или "на 30 апреля"
@@ -91,10 +84,20 @@ def parse_date_from_phrase(phrase: str) -> datetime:
 
         # Определяем месяц по тексту
         month_map = {
-            "января": 1, "февраля": 2, "марта": 3, "апреля": 4, "мая": 5,
-            "июня": 6, "июля": 7, "августа": 8, "сентября": 9, "октября": 10,
-            "ноября": 11, "декабря": 12
+            "января": 1,
+            "февраля": 2,
+            "марта": 3,
+            "апреля": 4,
+            "мая": 5,
+            "июня": 6,
+            "июля": 7,
+            "августа": 8,
+            "сентября": 9,
+            "октября": 10,
+            "ноября": 11,
+            "декабря": 12
         }
+
         for month_name, month_num in month_map.items():
             if month_name in phrase:
                 month = month_num
@@ -170,7 +173,7 @@ def schedule_on_day(phrase: str, group_id: int) -> str:
         return say_day(SSAUParser.get_day(group_id, date_of_interest))
 
     except ValueError:
-        return 'Не могу определить дату из вашего сообщения. Пожалуйста, укажите день или диапазон дат.'
+        return 'Не могу определить дату из вашего сообщения.'
 
     except HTTPError as e:
         return f'Извините сайт не отвечает, проверьте указанный вами id группы, попробуйте позже или, ' \
